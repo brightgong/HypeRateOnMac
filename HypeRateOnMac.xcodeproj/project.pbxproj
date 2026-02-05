@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* HypeRateOnMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* HypeRateOnMacApp.swift */; };
 		A10000000000000000000002 /* HeartRateData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000021 /* HeartRateData.swift */; };
+		A10000000000000000000003 /* MenuBarManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000031 /* MenuBarManager.swift */; };
 		A10000000000000000000004 /* HeartRateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000041 /* HeartRateService.swift */; };
 		A10000000000000000000005 /* SettingsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000051 /* SettingsService.swift */; };
 		A10000000000000000000006 /* HeartRateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000061 /* HeartRateViewModel.swift */; };
@@ -19,6 +20,7 @@
 		A10000000000000000000010 /* HypeRateOnMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HypeRateOnMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000011 /* HypeRateOnMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HypeRateOnMacApp.swift; sourceTree = "<group>"; };
 		A10000000000000000000021 /* HeartRateData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateData.swift; sourceTree = "<group>"; };
+		A10000000000000000000031 /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
 		A10000000000000000000041 /* HeartRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateService.swift; sourceTree = "<group>"; };
 		A10000000000000000000051 /* SettingsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsService.swift; sourceTree = "<group>"; };
 		A10000000000000000000061 /* HeartRateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateViewModel.swift; sourceTree = "<group>"; };
@@ -48,6 +50,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000011 /* HypeRateOnMacApp.swift */,
+				A10000000000000000000135 /* Managers */,
 				A10000000000000000000130 /* Models */,
 				A10000000000000000000140 /* Services */,
 				A10000000000000000000150 /* ViewModels */,
@@ -70,6 +73,14 @@
 				A10000000000000000000021 /* HeartRateData.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000135 /* Managers */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000031 /* MenuBarManager.swift */,
+			);
+			path = Managers;
 			sourceTree = "<group>";
 		};
 		A10000000000000000000140 /* Services */ = {
@@ -166,6 +177,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000001 /* HypeRateOnMacApp.swift in Sources */,
+				A10000000000000000000003 /* MenuBarManager.swift in Sources */,
 				A10000000000000000000002 /* HeartRateData.swift in Sources */,
 				A10000000000000000000004 /* HeartRateService.swift in Sources */,
 				A10000000000000000000005 /* SettingsService.swift in Sources */,

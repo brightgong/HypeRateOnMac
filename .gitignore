@@ -5,6 +5,7 @@
 ## Build generated
 build/
 DerivedData/
+.build/
 
 ## Various settings
 *.pbxuser
@@ -82,3 +83,9 @@ iOSInjectionProject/
 
 # App logs
 app.log
+
+# Claude generated documentation
+claude-generated-doc/
+
+# Claude configuration
+.claude/

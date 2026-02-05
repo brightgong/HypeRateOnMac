@@ -18,16 +18,16 @@ class HeartRateViewModel: ObservableObject {
         self.heartRateService = heartRateService
         self.settingsService = settingsService
 
-        // 初始化 deviceId
+        // Initialize deviceId
         self.deviceId = settingsService.deviceId
         self.deviceIdInput = settingsService.deviceId
 
-        // 监听设置变化
+        // Listen to settings changes
         settingsService.$deviceId
             .receive(on: DispatchQueue.main)
             .assign(to: &$deviceId)
 
-        // 监听服务状态变化
+        // Listen to service state changes
         heartRateService.$currentHeartRate
             .receive(on: DispatchQueue.main)
             .sink { [weak self] heartRate in
@@ -47,9 +47,9 @@ class HeartRateViewModel: ObservableObject {
     // MARK: - Connection
 
     func connect() {
-        // 检查是否已配置
+        // Check if configured
         guard !deviceId.isEmpty else {
-            connectionState = .error("请输入设备 ID")
+            connectionState = .error("Please enter device ID")
             return
         }
 
@@ -81,17 +81,12 @@ class HeartRateViewModel: ObservableObject {
     func updateDeviceId(_ newId: String) -> Bool {
         let trimmedId = newId.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // 验证设备 ID 格式
-        let pattern = "^[a-zA-Z0-9]{3,6}$"
-        let regex = try? NSRegularExpression(pattern: pattern, options: [])
-        let range = NSRange(location: 0, length: trimmedId.utf16.count)
-        guard regex?.firstMatch(in: trimmedId, options: [], range: range) != nil else {
-            return false
-        }
-
+        // Use SettingsService validation and update logic
         guard settingsService.updateDeviceId(trimmedId) else {
             return false
         }
+
+        // Sync state
         deviceId = settingsService.deviceId
         deviceIdInput = settingsService.deviceId
         return true

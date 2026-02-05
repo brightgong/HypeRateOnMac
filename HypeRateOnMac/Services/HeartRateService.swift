@@ -12,16 +12,22 @@ class HeartRateService: NSObject, ObservableObject {
     private var deviceId: String = ""
     private var reconnectAttempts = 0
     private let maxReconnectAttempts = 10
+    private var isManualDisconnect = false // Flag for manual disconnect
     private let reconnectDelayBase: TimeInterval = 2.0
 
-    private let heartbeatInterval: TimeInterval = 10.0
+    private let heartbeatInterval: TimeInterval = 15.0
     private let heartbeatQueue = DispatchQueue(label: "com.hyperate.heartbeat", qos: .userInteractive)
 
-    // 格式化当前时间戳
-    private func logTimestamp() -> String {
+    // Static DateFormatter to avoid repeated creation
+    private static let timestampFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss.SSS"
-        return formatter.string(from: Date())
+        return formatter
+    }()
+
+    // Format current timestamp
+    private func logTimestamp() -> String {
+        return Self.timestampFormatter.string(from: Date())
     }
 
     // MARK: - Connection
@@ -29,64 +35,94 @@ class HeartRateService: NSObject, ObservableObject {
     func connect(deviceId: String) {
         self.deviceId = deviceId
 
-        print("[\(logTimestamp())] 🔵 [HypeRate] 开始连接...")
-        print("[\(logTimestamp())] 🔵 [HypeRate] 设备 ID: \(deviceId)")
+        print("[\(logTimestamp())] 🔵 [HypeRate] Starting connection...")
+        print("[\(logTimestamp())] 🔵 [HypeRate] Device ID: \(deviceId)")
 
-        // 断开现有连接
-        disconnect()
+        // Disconnect existing connection (not marked as manual)
+        if webSocketTask != nil {
+            stopHeartbeat()
+            stopReconnectTimer()
+            webSocketTask?.cancel(with: .normalClosure, reason: nil)
+            webSocketTask = nil
+        }
 
-        // 更新状态
+        // Reset state, mark as non-manual disconnect
+        self.isManualDisconnect = false
+        reconnectAttempts = 0
+
+        // Update state
         DispatchQueue.main.async {
             self.connectionState = .connecting
         }
 
-        // 构建 WebSocket URL
+        // Build WebSocket URL
         let urlString = "wss://app.hyperate.io/ws/\(deviceId)?token=YOUR_TOKEN_HERE"
-        print("[\(logTimestamp())] 🔵 [HypeRate] 连接 URL: wss://app.hyperate.io/ws/\(deviceId)")
+        print("[\(logTimestamp())] 🔵 [HypeRate] Connection URL: wss://app.hyperate.io/ws/\(deviceId)")
 
         guard let url = URL(string: urlString) else {
-            let errorMsg = "无效的 URL"
-            print("[\(logTimestamp())] 🔴 [HypeRate] 错误: \(errorMsg)")
+            let errorMsg = "Invalid URL"
+            print("[\(logTimestamp())] 🔴 [HypeRate] Error: \(errorMsg)")
             DispatchQueue.main.async {
                 self.connectionState = .error(errorMsg)
             }
             return
         }
 
-        // 创建 WebSocket 连接
+        // Create WebSocket connection
         let request = URLRequest(url: url)
         webSocketTask = URLSession.shared.webSocketTask(with: request)
         webSocketTask?.delegate = self
 
-        // 开始接收消息
+        // Start receiving messages
         receiveMessage()
 
-        // 启动连接
-        print("[\(logTimestamp())] 🔵 [HypeRate] 启动 WebSocket 握手...")
+        // Start connection
+        print("[\(logTimestamp())] 🔵 [HypeRate] Starting WebSocket handshake...")
         webSocketTask?.resume()
     }
 
     func disconnect() {
-        // 停止定时器
+        print("[\(logTimestamp())] 🔵 [HypeRate] Starting manual disconnect")
+
+        isManualDisconnect = true // Mark as manual disconnect
+
+        // Stop timers
         stopHeartbeat()
         stopReconnectTimer()
 
-        // 发送离开消息
-        if connectionState == .connected {
-            sendLeaveMessage()
-        }
+        print("[\(logTimestamp())] 🔵 [HypeRate] Stopped heartbeat and reconnect timers")
 
-        // 关闭 WebSocket
-        webSocketTask?.cancel(with: .normalClosure, reason: nil)
-        webSocketTask = nil
+        // Save current connection state for judgment (before update)
+        let wasConnected = connectionState == .connected
 
-        // 重置状态
+        // Async update UI state (avoid deadlock)
         DispatchQueue.main.async {
             self.connectionState = .disconnected
             self.currentHeartRate = nil
         }
 
+        print("[\(logTimestamp())] 🔵 [HypeRate] Requested state update to disconnected")
+
+        // Only send close message when WebSocket is running
+        if let task = webSocketTask, task.state == .running {
+            if wasConnected {
+                print("[\(logTimestamp())] 🔵 [HypeRate] Sending leave message")
+                sendLeaveMessage()
+            } else {
+                print("[\(logTimestamp())] 🔵 [HypeRate] Close WebSocket directly")
+                task.cancel(with: .normalClosure, reason: nil)
+                webSocketTask = nil
+            }
+        } else {
+            print("[\(logTimestamp())] 🔵 [HypeRate] WebSocket not running, no need to close")
+            webSocketTask = nil
+        }
+
+        // Note: if leave message sent, webSocketTask will close after 100ms
+        // Otherwise already set to nil
+
         reconnectAttempts = 0
+        print("[\(logTimestamp())] ✅ [HypeRate] Disconnect complete")
     }
 
     // MARK: - WebSocket Messages
@@ -98,23 +134,31 @@ class HeartRateService: NSObject, ObservableObject {
             switch result {
             case .success(let message):
                 self.handleWebSocketMessage(message)
-                // 继续接收下一条消息
+                // Continue receiving next message
                 self.receiveMessage()
 
             case .failure(let error):
                 let nsError = error as NSError
-                print("[\(self.logTimestamp())] 🔴 [HypeRate] 接收消息失败")
-                print("[\(self.logTimestamp())] 🔴 [HypeRate] 错误码: \(nsError.code)")
-                print("[\(self.logTimestamp())] 🔴 [HypeRate] 错误描述: \(error.localizedDescription)")
-                print("[\(self.logTimestamp())] 🔴 [HypeRate] 错误域: \(nsError.domain)")
+                print("[\(self.logTimestamp())] 🔴 [HypeRate] Message receive failed")
+                print("[\(self.logTimestamp())] 🔴 [HypeRate] Error code: \(nsError.code)")
+                print("[\(self.logTimestamp())] 🔴 [HypeRate] Error description: \(error.localizedDescription)")
+                print("[\(self.logTimestamp())] 🔴 [HypeRate] Error domain: \(nsError.domain)")
 
                 if let failingURL = nsError.userInfo[NSURLErrorFailingURLErrorKey] as? URL {
-                    print("[\(self.logTimestamp())] 🔴 [HypeRate] 失败的 URL: \(failingURL.absoluteString)")
+                    print("[\(self.logTimestamp())] 🔴 [HypeRate] Failed URL: \(failingURL.absoluteString)")
+                }
+
+                // Check if manual disconnect
+                if self.isManualDisconnect {
+                    print("[\(self.logTimestamp())] 🔵 [HypeRate] Error from manual disconnect, ignore")
+                    // Don't set error state, don't trigger reconnect
+                    return
                 }
 
                 DispatchQueue.main.async {
-                    self.connectionState = .error("接收消息失败: \(error.localizedDescription)")
+                    self.connectionState = .error(error.localizedDescription)
                 }
+
                 self.scheduleReconnect()
             }
         }
@@ -125,7 +169,7 @@ class HeartRateService: NSObject, ObservableObject {
         case .string(let text):
             handleTextMessage(text)
         case .data(let data):
-            // 处理二进制数据（如果有的话）
+            // Handle binary data (if any)
             if let text = String(data: data, encoding: .utf8) {
                 handleTextMessage(text)
             }
@@ -140,11 +184,11 @@ class HeartRateService: NSObject, ObservableObject {
         do {
             if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 let event = json["event"] as? String ?? ""
-                print("[\(logTimestamp())] 📨 [HypeRate] 收到消息: event=\(event)")
+                print("[\(logTimestamp())] 📨 [HypeRate] Received message: event=\(event)")
 
-                // 忽略系统回复消息
+                // Ignore system reply message
                 if event == "phx_reply" {
-                    print("[\(logTimestamp())] ✅ [HypeRate] 收到加入确认")
+                    print("[\(logTimestamp())] ✅ [HypeRate] Received join confirmation")
                     DispatchQueue.main.async {
                         if self.connectionState != .connected {
                             self.connectionState = .connected
@@ -155,11 +199,11 @@ class HeartRateService: NSObject, ObservableObject {
                     return
                 }
 
-                // 处理心率更新
+                // Handle heart rate update
                 if event == "hr_update" {
                     if let payload = json["payload"] as? [String: Any],
                        let hr = payload["hr"] as? Int {
-                        print("[\(logTimestamp())] ❤️ [HypeRate] 心率更新: \(hr) BPM")
+                        print("[\(logTimestamp())] ❤️ [HypeRate] Heart rate update: \(hr) BPM")
                         DispatchQueue.main.async {
                             self.currentHeartRate = hr
                         }
@@ -167,15 +211,15 @@ class HeartRateService: NSObject, ObservableObject {
                 }
             }
         } catch {
-            print("[\(logTimestamp())] 🔴 [HypeRate] 解析消息失败: \(error)")
-            print("[\(logTimestamp())] 🔴 [HypeRate] 消息内容: \(text)")
+            print("[\(logTimestamp())] 🔴 [HypeRate] Message parse failed: \(error)")
+            print("[\(logTimestamp())] 🔴 [HypeRate] Message content: \(text)")
         }
     }
 
     // MARK: - Send Messages
 
     private func sendJoinMessage() {
-        print("[\(logTimestamp())] 📤 [HypeRate] 发送加入消息: hr:\(deviceId)")
+        print("[\(logTimestamp())] 📤 [HypeRate] Sending join message: hr:\(deviceId)")
         let message: [String: Any] = [
             "topic": "hr:\(deviceId)",
             "event": "phx_join",
@@ -186,7 +230,7 @@ class HeartRateService: NSObject, ObservableObject {
     }
 
     private func sendLeaveMessage() {
-        print("[\(logTimestamp())] 📤 [HypeRate] 发送离开消息: hr:\(deviceId)")
+        print("[\(logTimestamp())] 📤 [HypeRate] Sending leave message: hr:\(deviceId)")
         let message: [String: Any] = [
             "topic": "hr:\(deviceId)",
             "event": "phx_leave",
@@ -195,14 +239,17 @@ class HeartRateService: NSObject, ObservableObject {
         ]
         sendMessage(message)
 
-        // 100ms 后关闭连接
+        // Close connection and cleanup webSocketTask after 100ms
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.webSocketTask?.cancel(with: .normalClosure, reason: nil)
+            guard let self = self else { return }
+            print("[\(self.logTimestamp())] 🔵 [HypeRate] Closing WebSocket")
+            self.webSocketTask?.cancel(with: .normalClosure, reason: nil)
+            self.webSocketTask = nil
         }
     }
 
     private func sendHeartbeat() {
-        print("[\(logTimestamp())] 💓 [HypeRate] 发送心跳")
+        print("[\(logTimestamp())] 💓 [HypeRate] Sending heartbeat")
         let message: [String: Any] = [
             "event": "ping",
             "payload": ["timestamp": Int(Date().timeIntervalSince1970 * 1000)]
@@ -214,17 +261,17 @@ class HeartRateService: NSObject, ObservableObject {
         do {
             let data = try JSONSerialization.data(withJSONObject: message)
             if let text = String(data: data, encoding: .utf8) {
-                print("[\(logTimestamp())] 📤 [HypeRate] 发送: \(text)")
+                print("[\(logTimestamp())] 📤 [HypeRate] Sending: \(text)")
                 webSocketTask?.send(.string(text)) { [weak self] error in
                     if let error = error {
-                        print("[\(self?.logTimestamp() ?? "")] 🔴 [HypeRate] 发送消息失败: \(error)")
+                        print("[\(self?.logTimestamp() ?? "")] 🔴 [HypeRate] Send message failed: \(error)")
                     } else {
-                        print("[\(self?.logTimestamp() ?? "")] ✅ [HypeRate] 发送成功")
+                        print("[\(self?.logTimestamp() ?? "")] ✅ [HypeRate] Send success")
                     }
                 }
             }
         } catch {
-            print("[\(logTimestamp())] 🔴 [HypeRate] 编码消息失败: \(error)")
+            print("[\(logTimestamp())] 🔴 [HypeRate] Message encoding failed: \(error)")
         }
     }
 
@@ -232,12 +279,9 @@ class HeartRateService: NSObject, ObservableObject {
 
     private func startHeartbeat() {
         stopHeartbeat()
-        print("[\(logTimestamp())] 💓 [HypeRate] 启动心跳定时器 (间隔: \(heartbeatInterval)s)")
+        print("[\(logTimestamp())] 💓 [HypeRate] Starting heartbeat timer (interval: \(heartbeatInterval)s)")
 
-        // 立即发送一次加入消息
-        sendJoinMessage()
-
-        // 创建 DispatchSourceTimer
+        // Create DispatchSourceTimer
         heartbeatTimer = DispatchSource.makeTimerSource(queue: heartbeatQueue)
         heartbeatTimer?.schedule(deadline: .now() + heartbeatInterval, repeating: heartbeatInterval)
         heartbeatTimer?.setEventHandler { [weak self] in
@@ -245,7 +289,7 @@ class HeartRateService: NSObject, ObservableObject {
         }
         heartbeatTimer?.resume()
 
-        print("[\(logTimestamp())] 💓 [HypeRate] 心跳定时器已启动")
+        print("[\(logTimestamp())] 💓 [HypeRate] Heartbeat timer started")
     }
 
     private func stopHeartbeat() {
@@ -256,10 +300,22 @@ class HeartRateService: NSObject, ObservableObject {
     // MARK: - Reconnection
 
     private func scheduleReconnect() {
+        // Manual disconnect doesn't trigger auto-reconnect
+        guard !isManualDisconnect else {
+            print("[\(logTimestamp())] 🔵 [HypeRate] Manual disconnect, don't trigger reconnect")
+            return
+        }
+
+        // Prevent duplicate reconnect scheduling
+        if connectionState == .connecting {
+            print("[\(logTimestamp())] 🔵 [HypeRate] Already in reconnecting state, skip duplicate call")
+            return
+        }
+
         guard reconnectAttempts < maxReconnectAttempts else {
-            print("[\(logTimestamp())] 🔴 [HypeRate] 重连次数超过限制 (\(maxReconnectAttempts) 次)")
+            print("[\(logTimestamp())] 🔴 [HypeRate] Reconnect attempts exceeded limit (\(maxReconnectAttempts) times)")
             DispatchQueue.main.async {
-                self.connectionState = .error("重连次数超过限制")
+                self.connectionState = .error("Reconnect attempts exceeded")
             }
             return
         }
@@ -267,18 +323,18 @@ class HeartRateService: NSObject, ObservableObject {
         reconnectAttempts += 1
         let delay = min(reconnectDelayBase * pow(2.0, Double(reconnectAttempts - 1)), 60.0)
 
-        print("[\(logTimestamp())] 🔄 [HypeRate] 计划重连 (第 \(reconnectAttempts) 次)，\(delay) 秒后重试")
+        print("[\(logTimestamp())] 🔄 [HypeRate] Scheduling reconnect (attempt \(reconnectAttempts)), \(delay) seconds until retry")
         DispatchQueue.main.async {
             self.connectionState = .connecting
         }
 
-        // 使用 DispatchSourceTimer 进行重连
+        // Use DispatchSourceTimer for reconnect
         let reconnectQueue = DispatchQueue(label: "com.hyperate.reconnect", qos: .userInitiated)
         reconnectTimer = DispatchSource.makeTimerSource(queue: reconnectQueue)
         reconnectTimer?.schedule(deadline: .now() + delay, repeating: .never)
         reconnectTimer?.setEventHandler { [weak self] in
             guard let self = self else { return }
-            print("[\(self.logTimestamp())] 🔄 [HypeRate] 开始重连...")
+            print("[\(self.logTimestamp())] 🔄 [HypeRate] Starting reconnect...")
             self.connect(deviceId: self.deviceId)
         }
         reconnectTimer?.resume()
@@ -294,9 +350,9 @@ class HeartRateService: NSObject, ObservableObject {
 
 extension HeartRateService: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol subprotocol: String?) {
-        print("[\(logTimestamp())] ✅ [HypeRate] WebSocket 握手成功")
+        print("[\(logTimestamp())] ✅ [HypeRate] WebSocket handshake successful")
         if let subprotocol = subprotocol {
-            print("[\(logTimestamp())] ✅ [HypeRate] 协议: \(subprotocol)")
+            print("[\(logTimestamp())] ✅ [HypeRate] Protocol: \(subprotocol)")
         }
 
         DispatchQueue.main.async {
@@ -304,23 +360,32 @@ extension HeartRateService: URLSessionWebSocketDelegate {
             self.reconnectAttempts = 0
         }
 
-        // 连接成功后发送加入消息并启动心跳
+        // Send join message and start heartbeat after connection
         sendJoinMessage()
         startHeartbeat()
     }
 
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        print("[\(logTimestamp())] 🔴 [HypeRate] WebSocket 连接关闭")
-        print("[\(logTimestamp())] 🔴 [HypeRate] 关闭码: \(closeCode.rawValue)")
+        print("[\(logTimestamp())] 🔴 [HypeRate] WebSocket connection closed")
+        print("[\(logTimestamp())] 🔴 [HypeRate] Close code: \(closeCode.rawValue)")
 
         if let reason = reason, let reasonString = String(data: reason, encoding: .utf8) {
-            print("[\(logTimestamp())] 🔴 [HypeRate] 关闭原因: \(reasonString)")
+            print("[\(logTimestamp())] 🔴 [HypeRate] Close reason: \(reasonString)")
+        }
+
+        // Check if manual disconnect
+        if isManualDisconnect {
+            print("[\(logTimestamp())] 🔵 [HypeRate] Manual disconnect, keep disconnected state")
+            // State already set in disconnect(), don't trigger reconnect
+            stopHeartbeat()
+            return
         }
 
         DispatchQueue.main.async {
             self.connectionState = .disconnected
         }
         stopHeartbeat()
+
         scheduleReconnect()
     }
 }

@@ -17,8 +17,8 @@ struct HeartRateData: Codable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         heartRate = try container.decode(Int.self, forKey: .heartRate)
-        
-        // 处理时间戳（可能是秒级 Unix 时间戳）
+
+        // Handle timestamp (may be Unix timestamp in seconds)
         if let timestampInt = try? container.decode(Int.self, forKey: .timestamp) {
             timestamp = Date(timeIntervalSince1970: TimeInterval(timestampInt))
         } else {
@@ -32,17 +32,17 @@ enum ConnectionState: Equatable {
     case connecting
     case connected
     case error(String)
-    
+
     var description: String {
         switch self {
         case .disconnected:
-            return "已断开"
+            return "Disconnected"
         case .connecting:
-            return "连接中..."
+            return "Connecting..."
         case .connected:
-            return "已连接"
+            return "Connected"
         case .error(let message):
-            return "错误: \(message)"
+            return "Error: \(message)"
         }
     }
     

@@ -1,5 +1,28 @@
 # 开发日志
 
+## 2026-02-05
+
+### refactor: Localization and MenuBar state synchronization
+
+**Localization:**
+- Replace all Chinese text in source code with English equivalents
+- Update log messages in HeartRateService.swift to English
+- Update ConnectionState descriptions to English
+- Update all UI text strings in MenuBarView.swift to English
+- Update comments and error messages across all Swift files
+
+**Bug fixes:**
+- Fix MenuBar icon state not updating when connection state changes
+- Add Combine observer for connectionState in MenuBarManager
+- MenuBar icon now updates immediately on state changes (connecting, connected, disconnected, error)
+- MenuBar display now stays synchronized with UI at all times
+
+**Technical changes:**
+- Import Combine framework in MenuBarManager
+- Add cancellables property to store subscriptions
+- Subscribe to viewModel.$connectionState publisher
+- Call updateDisplay() on both heart rate and connection state changes
+
 ## 2025-02-05
 
 ### refactor: simplify configuration and remove SettingsView
