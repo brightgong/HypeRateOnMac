@@ -10,7 +10,7 @@ final class ConnectionStateTests: XCTestCase {
         let state = ConnectionState.disconnected
 
         // When & Then
-        XCTAssertEqual(state.description, "已断开")
+        XCTAssertEqual(state.description, "Disconnected")
     }
 
     func testConnectingDescription() {
@@ -18,7 +18,7 @@ final class ConnectionStateTests: XCTestCase {
         let state = ConnectionState.connecting
 
         // When & Then
-        XCTAssertEqual(state.description, "连接中...")
+        XCTAssertEqual(state.description, "Connecting...")
     }
 
     func testConnectedDescription() {
@@ -26,16 +26,16 @@ final class ConnectionStateTests: XCTestCase {
         let state = ConnectionState.connected
 
         // When & Then
-        XCTAssertEqual(state.description, "已连接")
+        XCTAssertEqual(state.description, "Connected")
     }
 
     func testErrorDescription() {
         // Given
-        let errorMessage = "网络连接失败"
+        let errorMessage = "Network connection failed"
         let state = ConnectionState.error(errorMessage)
 
         // When & Then
-        XCTAssertEqual(state.description, "错误: 网络连接失败")
+        XCTAssertEqual(state.description, "Error: Network connection failed")
     }
 
     func testErrorDescriptionWithEmptyMessage() {
@@ -43,7 +43,7 @@ final class ConnectionStateTests: XCTestCase {
         let state = ConnectionState.error("")
 
         // When & Then
-        XCTAssertEqual(state.description, "错误: ")
+        XCTAssertEqual(state.description, "Error: ")
     }
 
     // MARK: - Color Tests
@@ -53,7 +53,7 @@ final class ConnectionStateTests: XCTestCase {
         let state = ConnectionState.disconnected
 
         // When & Then
-        XCTAssertEqual(state.color, "#8E8E93")
+        XCTAssertEqual(state.color, AppColors.disconnected)
     }
 
     func testConnectingColor() {
@@ -61,7 +61,7 @@ final class ConnectionStateTests: XCTestCase {
         let state = ConnectionState.connecting
 
         // When & Then
-        XCTAssertEqual(state.color, "#FF9500")
+        XCTAssertEqual(state.color, AppColors.connecting)
     }
 
     func testConnectedColor() {
@@ -69,7 +69,7 @@ final class ConnectionStateTests: XCTestCase {
         let state = ConnectionState.connected
 
         // When & Then
-        XCTAssertEqual(state.color, "#34C759")
+        XCTAssertEqual(state.color, AppColors.connected)
     }
 
     func testErrorColor() {
@@ -77,7 +77,7 @@ final class ConnectionStateTests: XCTestCase {
         let state = ConnectionState.error("Some error")
 
         // When & Then
-        XCTAssertEqual(state.color, "#FF3B30")
+        XCTAssertEqual(state.color, AppColors.error)
     }
 
     // MARK: - Equatable Tests
@@ -158,8 +158,8 @@ final class ConnectionStateTests: XCTestCase {
 
         for (index, errorMsg) in errors.enumerated() {
             let state = ConnectionState.error(errorMsg)
-            XCTAssertEqual(state.description, "错误: \(errorMsg)")
-            XCTAssertEqual(state.color, "#FF3B30")
+            XCTAssertEqual(state.description, "Error: \(errorMsg)")
+            XCTAssertEqual(state.color, AppColors.error)
 
             // Verify each error state is different from others
             for (otherIndex, otherMsg) in errors.enumerated() where index != otherIndex {

@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import Combine
 @testable import HypeRateOnMac
 
 final class MenuBarViewTests: XCTestCase {

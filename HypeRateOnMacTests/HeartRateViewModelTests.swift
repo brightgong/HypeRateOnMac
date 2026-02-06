@@ -41,7 +41,6 @@ final class HeartRateViewModelTests: XCTestCase {
         XCTAssertNil(sut.currentHeartRate)
         XCTAssertEqual(sut.connectionState, .disconnected)
         XCTAssertEqual(sut.deviceId, "")
-        XCTAssertEqual(sut.deviceIdInput, "")
     }
 
     func testInitializationWithExistingDeviceId() {
@@ -65,7 +64,6 @@ final class HeartRateViewModelTests: XCTestCase {
         let expectation = XCTestExpectation(description: "Device ID updated")
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             XCTAssertEqual(tempViewModel.deviceId, "abc123")
-            XCTAssertEqual(tempViewModel.deviceIdInput, "abc123")
             expectation.fulfill()
         }
 
@@ -95,7 +93,7 @@ final class HeartRateViewModelTests: XCTestCase {
 
         // Then
         XCTAssertFalse(mockHeartRateService.connectCalled)
-        XCTAssertEqual(sut.connectionState, .error("请输入设备 ID"))
+        XCTAssertEqual(sut.connectionState, .error("Please enter device ID"))
     }
 
     func testDisconnect() {
@@ -172,7 +170,6 @@ final class HeartRateViewModelTests: XCTestCase {
     func testUpdateDeviceIdWithValidId() {
         // Given
         let newId = "xyz789"
-        sut.deviceIdInput = newId
 
         // When
         let result = sut.updateDeviceId(newId)
@@ -180,7 +177,6 @@ final class HeartRateViewModelTests: XCTestCase {
         // Then
         XCTAssertTrue(result)
         XCTAssertEqual(sut.deviceId, newId)
-        XCTAssertEqual(sut.deviceIdInput, newId)
     }
 
     func testUpdateDeviceIdWithInvalidId() {
@@ -272,10 +268,10 @@ final class HeartRateViewModelTests: XCTestCase {
     func testStatusColorForDifferentStates() {
         // Test all connection states
         let testCases: [(ConnectionState, String)] = [
-            (.disconnected, "#8E8E93"),
-            (.connecting, "#FF9500"),
-            (.connected, "#34C759"),
-            (.error("test"), "#FF3B30")
+            (.disconnected, AppColors.disconnected),
+            (.connecting, AppColors.connecting),
+            (.connected, AppColors.connected),
+            (.error("test"), AppColors.error)
         ]
 
         for (state, expectedColor) in testCases {
@@ -363,37 +359,19 @@ final class HeartRateViewModelTests: XCTestCase {
     func testOnHeartRateChangeCallbackNotSet() {
         // Given
         sut.onHeartRateChange = nil
+        let expectation = XCTestExpectation(description: "Heart rate updated")
 
         // When - Should not crash
         mockHeartRateService.currentHeartRate = 75
 
+        // Wait for async update
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            expectation.fulfill()
+        }
+        wait(for: [expectation], timeout: 1.0)
+
         // Then
         XCTAssertEqual(sut.currentHeartRate, 75)
-    }
-}
-
-// MARK: - Mock Classes
-
-class MockHeartRateService: HeartRateService {
-    var connectCalled = false
-    var disconnectCalled = false
-    var lastConnectDeviceId: String?
-
-    override func connect(deviceId: String) {
-        connectCalled = true
-        lastConnectDeviceId = deviceId
-        // Simulate connection state change
-        DispatchQueue.main.async {
-            self.connectionState = .connecting
-        }
-    }
-
-    override func disconnect() {
-        disconnectCalled = true
-        DispatchQueue.main.async {
-            self.connectionState = .disconnected
-            self.currentHeartRate = nil
-        }
     }
 }
 

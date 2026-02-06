@@ -1,32 +1,5 @@
 import Foundation
 
-struct HeartRateData: Codable {
-    let heartRate: Int
-    let timestamp: Date
-    
-    enum CodingKeys: String, CodingKey {
-        case heartRate = "heartrate"
-        case timestamp
-    }
-    
-    init(heartRate: Int, timestamp: Date = Date()) {
-        self.heartRate = heartRate
-        self.timestamp = timestamp
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        heartRate = try container.decode(Int.self, forKey: .heartRate)
-
-        // Handle timestamp (may be Unix timestamp in seconds)
-        if let timestampInt = try? container.decode(Int.self, forKey: .timestamp) {
-            timestamp = Date(timeIntervalSince1970: TimeInterval(timestampInt))
-        } else {
-            timestamp = Date()
-        }
-    }
-}
-
 enum ConnectionState: Equatable {
     case disconnected
     case connecting
@@ -49,13 +22,13 @@ enum ConnectionState: Equatable {
     var color: String {
         switch self {
         case .disconnected:
-            return "#8E8E93"
+            return AppColors.disconnected
         case .connecting:
-            return "#FF9500"
+            return AppColors.connecting
         case .connected:
-            return "#34C759"
+            return AppColors.connected
         case .error:
-            return "#FF3B30"
+            return AppColors.error
         }
     }
 }

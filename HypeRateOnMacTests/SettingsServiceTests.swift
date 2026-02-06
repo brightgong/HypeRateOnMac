@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 @testable import HypeRateOnMac
 
 final class SettingsServiceTests: XCTestCase {
@@ -10,13 +11,15 @@ final class SettingsServiceTests: XCTestCase {
         super.setUp()
         // Clear UserDefaults before each test
         UserDefaults.standard.removeObject(forKey: testDeviceIdKey)
-        // Force recreation of singleton
+        // Reset the singleton's state
         sut = SettingsService.shared
+        sut.deviceId = "" // Reset to empty
     }
 
     override func tearDown() {
         // Clean up UserDefaults after each test
         UserDefaults.standard.removeObject(forKey: testDeviceIdKey)
+        sut.deviceId = "" // Reset to empty
         sut = nil
         super.tearDown()
     }
@@ -222,14 +225,19 @@ final class SettingsServiceTests: XCTestCase {
     }
 
     func testDeviceIdPersistence() {
-        // Given
-        let deviceId = "persist"
+        // Given - Use a valid device ID (3-6 alphanumeric characters)
+        let deviceId = "test12"
 
         // When
-        _ = sut.updateDeviceId(deviceId)
+        let result = sut.updateDeviceId(deviceId)
 
         // Then
-        XCTAssertEqual(UserDefaults.standard.string(forKey: testDeviceIdKey), deviceId)
+        XCTAssertTrue(result, "Update should succeed")
+        XCTAssertEqual(sut.deviceId, deviceId, "Service should have updated device ID")
+
+        // Verify persistence
+        let stored = UserDefaults.standard.string(forKey: testDeviceIdKey)
+        XCTAssertEqual(stored, deviceId, "Value should be persisted to UserDefaults")
     }
 
     // MARK: - Edge Cases

@@ -96,18 +96,18 @@ struct HeartRateCard: View {
         switch viewModel.connectionState {
         case .connected:
             guard let heartRate = viewModel.currentHeartRate else {
-                return Color(hex: "#8E8E93")
+                return Color(hex: AppColors.disconnected)
             }
             if heartRate > 120 {
-                return Color(hex: "#FF3B30")
+                return Color(hex: AppColors.heartRateHigh)
             } else if heartRate > 100 {
-                return Color(hex: "#FF9500")
+                return Color(hex: AppColors.heartRateElevated)
             } else {
-                return Color(hex: "#34C759")
+                return Color(hex: AppColors.heartRateNormal)
             }
-        case .connecting: return Color(hex: "#FF9500")
-        case .disconnected: return Color(hex: "#8E8E93")
-        case .error: return Color(hex: "#FF3B30")
+        case .connecting: return Color(hex: AppColors.connecting)
+        case .disconnected: return Color(hex: AppColors.disconnected)
+        case .error: return Color(hex: AppColors.error)
         }
     }
 }
@@ -175,7 +175,7 @@ struct ControlPanelCard: View {
                 .padding(.vertical, 12)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(viewModel.isConnected ? Color(hex: "#FF3B30") : Color(hex: "#34C759"))
+                        .fill(viewModel.isConnected ? Color(hex: AppColors.error) : Color(hex: AppColors.connected))
                 )
             }
             .buttonStyle(PlainButtonStyle())
@@ -233,7 +233,7 @@ struct DeviceIdEditorSheet: View {
             VStack(spacing: 8) {
                 Image(systemName: "heart.text.square.fill")
                     .font(.system(size: 48))
-                    .foregroundColor(Color(hex: "#FF3B30"))
+                    .foregroundColor(Color(hex: AppColors.error))
 
                 Text("Set Device ID")
                     .font(.system(size: 20, weight: .bold))
@@ -285,7 +285,7 @@ struct DeviceIdEditorSheet: View {
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(hex: "#007AFF"))
+                            .fill(Color(hex: AppColors.buttonPrimary))
                     )
                 }
                 .buttonStyle(PlainButtonStyle())

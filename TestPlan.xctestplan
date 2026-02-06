@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "B590AF81-AE6D-4B99-AB80-2E31FE6D67C9",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:HypeRateOnMac.xcodeproj",
+        "identifier" : "B0FE67162F358BEA003C77C2",
+        "name" : "HypeRateOnMacTests"
+      }
+    }
+  ],
+  "version" : 1
+}

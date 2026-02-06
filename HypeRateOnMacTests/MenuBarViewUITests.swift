@@ -1,5 +1,6 @@
 import XCTest
 import SwiftUI
+import Combine
 @testable import HypeRateOnMac
 
 final class MenuBarViewUITests: XCTestCase {
@@ -70,15 +71,15 @@ final class MenuBarViewUITests: XCTestCase {
     }
 
     func testHeartRateColorLogic() {
-        // Test the color logic for different heart rates
+        // Test the statusColor (connection state color), not heart rate display color
         let testCases: [(ConnectionState, Int?, String)] = [
-            (.connected, 80, "#FF3B30"),    // Normal: red
-            (.connected, 110, "#FF9500"),   // Elevated: orange
-            (.connected, 130, "#FF3B30"),   // High: red
-            (.connected, nil, "#8E8E93"),   // No data: gray
-            (.connecting, nil, "#FF9500"),  // Connecting: orange
-            (.disconnected, nil, "#8E8E93"), // Disconnected: gray
-            (.error("test"), nil, "#FF3B30") // Error: red
+            (.connected, 80, AppColors.connected),      // Connected state
+            (.connected, 110, AppColors.connected),     // Connected state
+            (.connected, 130, AppColors.connected),     // Connected state
+            (.connected, nil, AppColors.connected),     // Connected state
+            (.connecting, nil, AppColors.connecting),   // Connecting: orange
+            (.disconnected, nil, AppColors.disconnected), // Disconnected: gray
+            (.error("test"), nil, AppColors.error)      // Error: red
         ]
 
         for (state, heartRate, expectedColor) in testCases {
@@ -88,7 +89,7 @@ final class MenuBarViewUITests: XCTestCase {
 
             // Then
             let statusColor = viewModel.statusColor
-            XCTAssertEqual(statusColor, expectedColor)
+            XCTAssertEqual(statusColor, expectedColor, "Failed for state: \(state), HR: \(String(describing: heartRate))")
         }
     }
 
@@ -131,17 +132,6 @@ final class MenuBarViewUITests: XCTestCase {
             // Then
             XCTAssertEqual(view.viewModel.deviceId, deviceId)
         }
-    }
-
-    func testDeviceIdInputSyncWithViewModel() {
-        // Given
-        let newId = "new123"
-
-        // When
-        viewModel.deviceIdInput = newId
-
-        // Then
-        XCTAssertEqual(viewModel.deviceIdInput, newId)
     }
 
     func testDeviceIdUpdateValidation() {
@@ -445,16 +435,25 @@ final class MenuBarViewUITests: XCTestCase {
         viewModel.connect()
         XCTAssertTrue(mockService.connectCalled)
 
-        // 4. Simulate connection success
-        mockService.connectionState = .connected
-        RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.1))
+        // 4. Simulate connection success with proper async handling
+        let expectation1 = XCTestExpectation(description: "Connection state updated")
+        mockService.simulateConnectionState(.connected)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            expectation1.fulfill()
+        }
+        wait(for: [expectation1], timeout: 1.0)
 
-        // 5. Simulate heart rate update
-        mockService.currentHeartRate = 75
-        RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.1))
+        // 5. Simulate heart rate update with proper async handling
+        let expectation2 = XCTestExpectation(description: "Heart rate updated")
+        mockService.simulateHeartRateUpdate(75)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            expectation2.fulfill()
+        }
+        wait(for: [expectation2], timeout: 1.0)
 
         // 6. Verify UI state
         XCTAssertEqual(viewModel.heartRateDisplay, "75")
+        XCTAssertEqual(viewModel.connectionState, .connected)
         XCTAssertTrue(viewModel.isConnected)
 
         // 7. Disconnect

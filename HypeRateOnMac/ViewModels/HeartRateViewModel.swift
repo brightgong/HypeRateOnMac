@@ -5,22 +5,20 @@ class HeartRateViewModel: ObservableObject {
     @Published var currentHeartRate: Int?
     @Published var connectionState: ConnectionState = .disconnected
     @Published var deviceId: String = ""
-    @Published var deviceIdInput: String = ""
 
     var onHeartRateChange: (() -> Void)?
 
-    private let heartRateService: HeartRateService
+    private let heartRateService: HeartRateServiceProtocol
     private let settingsService: SettingsService
     private var cancellables = Set<AnyCancellable>()
 
-    init(heartRateService: HeartRateService = HeartRateService(),
+    init(heartRateService: HeartRateServiceProtocol = HeartRateService(),
          settingsService: SettingsService = .shared) {
         self.heartRateService = heartRateService
         self.settingsService = settingsService
 
         // Initialize deviceId
         self.deviceId = settingsService.deviceId
-        self.deviceIdInput = settingsService.deviceId
 
         // Listen to settings changes
         settingsService.$deviceId
@@ -28,7 +26,7 @@ class HeartRateViewModel: ObservableObject {
             .assign(to: &$deviceId)
 
         // Listen to service state changes
-        heartRateService.$currentHeartRate
+        heartRateService.currentHeartRatePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] heartRate in
                 self?.currentHeartRate = heartRate
@@ -36,7 +34,7 @@ class HeartRateViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        heartRateService.$connectionState
+        heartRateService.connectionStatePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] state in
                 self?.connectionState = state
@@ -88,7 +86,6 @@ class HeartRateViewModel: ObservableObject {
 
         // Sync state
         deviceId = settingsService.deviceId
-        deviceIdInput = settingsService.deviceId
         return true
     }
 
