@@ -17,6 +17,7 @@
 		A10000000000000000000008 /* AppColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000081 /* AppColors.swift */; };
 		A10000000000000000000009 /* HeartRateServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000091 /* HeartRateServiceProtocol.swift */; };
 		A1000000000000000000000A /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A1 /* NetworkMonitor.swift */; };
+		A1000000000000000000000B /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B1 /* AppConfig.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,6 +33,7 @@
 /* Begin PBXFileReference section */
 		A10000000000000000000010 /* HypeRateOnMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HypeRateOnMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000011 /* HypeRateOnMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HypeRateOnMacApp.swift; sourceTree = "<group>"; };
+		A10000000000000000000012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A10000000000000000000021 /* HeartRateData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateData.swift; sourceTree = "<group>"; };
 		A10000000000000000000031 /* MenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarManager.swift; sourceTree = "<group>"; };
 		A10000000000000000000041 /* HeartRateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateService.swift; sourceTree = "<group>"; };
@@ -41,6 +43,8 @@
 		A10000000000000000000081 /* AppColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppColors.swift; sourceTree = "<group>"; };
 		A10000000000000000000091 /* HeartRateServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateServiceProtocol.swift; sourceTree = "<group>"; };
 		A100000000000000000000A1 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
+		A100000000000000000000B1 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		A100000000000000000000C1 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		B0FE67122F358B7B003C77C2 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		B0FE67172F358BEA003C77C2 /* HypeRateOnMacTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HypeRateOnMacTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -71,6 +75,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000081 /* AppColors.swift */,
+				A100000000000000000000B1 /* AppConfig.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -78,6 +83,7 @@
 		A10000000000000000000100 = {
 			isa = PBXGroup;
 			children = (
+				A100000000000000000000C1 /* Secrets.xcconfig */,
 				B0FE67122F358B7B003C77C2 /* TestPlan.xctestplan */,
 				A10000000000000000000110 /* HypeRateOnMac */,
 				B0FE67182F358BEA003C77C2 /* HypeRateOnMacTests */,
@@ -89,6 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000011 /* HypeRateOnMacApp.swift */,
+				A10000000000000000000012 /* Info.plist */,
 				A10000000000000000000135 /* Managers */,
 				A10000000000000000000130 /* Models */,
 				A10000000000000000000140 /* Services */,
@@ -262,6 +269,7 @@
 				A1000000000000000000000A /* NetworkMonitor.swift in Sources */,
 				A10000000000000000000005 /* SettingsService.swift in Sources */,
 				A10000000000000000000008 /* AppColors.swift in Sources */,
+				A1000000000000000000000B /* AppConfig.swift in Sources */,
 				A10000000000000000000006 /* HeartRateViewModel.swift in Sources */,
 				A10000000000000000000007 /* MenuBarView.swift in Sources */,
 			);
@@ -409,6 +417,7 @@
 		};
 		A10000000000000000000310 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A100000000000000000000C1 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -422,14 +431,16 @@
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HypeRateOnMac/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				HYPERATE_API_KEY = "$(HYPERATE_API_KEY)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.HypeRateOnMac;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -439,6 +450,7 @@
 		};
 		A10000000000000000000311 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = A100000000000000000000C1 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -452,14 +464,16 @@
 				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HypeRateOnMac/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				HYPERATE_API_KEY = "$(HYPERATE_API_KEY)";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yourcompany.HypeRateOnMac;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -476,7 +490,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = default.HypeRateOnMacTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -497,7 +511,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = default.HypeRateOnMacTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;

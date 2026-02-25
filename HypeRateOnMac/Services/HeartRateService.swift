@@ -60,7 +60,18 @@ class HeartRateService: NSObject, ObservableObject, HeartRateServiceProtocol {
         }
 
         // Build WebSocket URL
-        let urlString = "wss://app.hyperate.io/ws/\(deviceId)?token=YOUR_TOKEN_HERE"
+        // Load API key from configuration
+        let apiKey = AppConfig.hyperateApiKey
+        guard !apiKey.isEmpty else {
+            let errorMsg = "API key not configured. Please set HYPERATE_API_KEY in Secrets.xcconfig"
+            logger.error("\(errorMsg)")
+            DispatchQueue.main.async {
+                self.connectionState = .error(errorMsg)
+            }
+            return
+        }
+
+        let urlString = "wss://app.hyperate.io/socket/websocket?token=\(apiKey)"
         logger.debug("Connection URL: wss://app.hyperate.io/ws/\(deviceId)")
 
         guard let url = URL(string: urlString) else {

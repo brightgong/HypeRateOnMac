@@ -89,3 +89,6 @@ claude-generated-doc/
 
 # Claude configuration
 .claude/
+
+# Secrets (API keys, tokens, etc.)
+Secrets.xcconfig

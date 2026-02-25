@@ -7,7 +7,7 @@ import Combine
 class NetworkMonitor: ObservableObject {
     static let shared = NetworkMonitor()
 
-    @Published var isConnected = false
+    @Published var isConnected = true  // Default to true, will be updated immediately
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "NetworkMonitor")
 
@@ -18,6 +18,13 @@ class NetworkMonitor: ObservableObject {
             }
         }
         monitor.start(queue: queue)
+
+        // Get initial state synchronously
+        // The pathUpdateHandler will fire almost immediately after start
+        // but we also check the current path
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.isConnected = (self?.monitor.currentPath.status == .satisfied)
+        }
     }
 
     deinit {
