@@ -18,6 +18,7 @@
 		A10000000000000000000009 /* HeartRateServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000091 /* HeartRateServiceProtocol.swift */; };
 		A1000000000000000000000A /* NetworkMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000A1 /* NetworkMonitor.swift */; };
 		A1000000000000000000000B /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000B1 /* AppConfig.swift */; };
+		A1000000000000000000000C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A100000000000000000000D1 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 		A100000000000000000000A1 /* NetworkMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkMonitor.swift; sourceTree = "<group>"; };
 		A100000000000000000000B1 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		A100000000000000000000C1 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		A100000000000000000000D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B0FE67122F358B7B003C77C2 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 		B0FE67172F358BEA003C77C2 /* HypeRateOnMacTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HypeRateOnMacTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -96,6 +98,7 @@
 			children = (
 				A10000000000000000000011 /* HypeRateOnMacApp.swift */,
 				A10000000000000000000012 /* Info.plist */,
+				A100000000000000000000D1 /* Assets.xcassets */,
 				A10000000000000000000135 /* Managers */,
 				A10000000000000000000130 /* Models */,
 				A10000000000000000000140 /* Services */,
@@ -244,6 +247,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1000000000000000000000C /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

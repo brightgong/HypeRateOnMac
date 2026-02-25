@@ -1,5 +1,45 @@
 # 开发日志
 
+## 2026-02-25
+
+### feat: Add app icon and externalize API key configuration
+
+#### App Icon
+- Create custom app icon with heart and ECG waveform design
+- Generate all required icon sizes (16x16 to 512x512 @2x)
+- Add Assets.xcassets to project build resources
+
+#### Security Improvements
+- Externalize API key from source code to `Secrets.xcconfig`
+- Create `Secrets.xcconfig.example` template for other developers
+- Add `Secrets.xcconfig` to `.gitignore` to prevent accidental commits
+- Create `AppConfig.swift` utility to load API key from Info.plist
+- API key is now injected at build time, not stored in source code
+
+#### Bug Fixes
+- Fix WebSocket endpoint URL (was `/ws/`, now `/socket/websocket`)
+- Fix NetworkMonitor initial state (default to `true` to prevent false negatives)
+
+#### Documentation
+- Update README.md with API key configuration instructions
+- Update project structure documentation
+- Fix technical details (heartbeat interval, WebSocket endpoint)
+
+#### File Changes
+**New files:**
+- `HypeRateOnMac/Utilities/AppConfig.swift`
+- `HypeRateOnMac/Info.plist`
+- `Secrets.xcconfig.example`
+- 10 icon files in `Assets.xcassets/AppIcon.appiconset/`
+
+**Modified files:**
+- `HypeRateOnMac/Services/HeartRateService.swift` - use AppConfig for API key
+- `HypeRateOnMac/Services/NetworkMonitor.swift` - fix initial state
+- `HypeRateOnMac.xcodeproj/project.pbxproj` - add new files and xcconfig reference
+- `.gitignore` - add Secrets.xcconfig
+- `README.md` - comprehensive update
+- `CHANGELOG.md` - add this entry
+
 ## 2026-02-06
 
 ### refactor: Major code quality improvements and comprehensive test coverage
