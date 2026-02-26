@@ -30,4 +30,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             viewModel?.connect()
         }
     }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        // Clean up before exit
+        viewModel?.disconnect()
+        menuBarManager = nil
+        viewModel = nil
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        // Allow immediate termination after cleanup
+        viewModel?.disconnect()
+        return .terminateNow
+    }
 }
