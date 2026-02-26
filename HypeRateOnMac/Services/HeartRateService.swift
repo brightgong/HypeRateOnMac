@@ -25,6 +25,16 @@ class HeartRateService: NSObject, ObservableObject, HeartRateServiceProtocol {
     // OSLog logger
     private let logger = Logger(subsystem: "com.hyperate.HypeRateOnMac", category: "HeartRateService")
 
+    // MARK: - Lifecycle
+
+    deinit {
+        // Ensure all timers and connections are cleaned up
+        stopHeartbeat()
+        stopReconnectTimer()
+        webSocketTask?.cancel(with: .normalClosure, reason: nil)
+        webSocketTask = nil
+    }
+
     // MARK: - Connection
 
     func connect(deviceId: String) {
